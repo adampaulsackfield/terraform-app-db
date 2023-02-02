@@ -28,14 +28,44 @@ resource "aws_route_table" "adamsackfield-rt" {
   }
 }
 
+module "db-tier" {
+  name           = "adamsackfield-database"
+  source         = "./modules/db-tier"
+  vpc_id         = "${aws_vpc.adamsackfield-application-deployment.id}"
+  route_table_id = "${aws_vpc.adamsackfield-application-deployment.main_route_table_id}"
+  cidr_block              = "10.8.1.0/24"
+  user_data               = templatefile("./scripts/database_user_data.sh", {})
+  ami_id                  = "ami-0a6bcbc3dec6aeb5a"
+  map_public_ip_on_launch = false
+
+  ingress = [{
+    from_port = 27017
+    to_port = 27017
+    protocol = "tcp"
+    cidr_blocks = "${module.application-tier.subnet_cidr_block}"
+  },
+  {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = "51.14.230.62/32"
+    },
+    {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = "54.197.131.165/32"
+    }]
+}
+
 module "application-tier" {
-  name = "adamsackfield-app"
-  source = "./modules/application-tier"
-  vpc_id = "${aws_vpc.adamsackfield-application-deployment.id}"
-  route_table_id = "${aws_route_table.adamsackfield-rt.id}"
+  name                    = "adamsackfield-app"
+  source                  = "./modules/application-tier"
+  vpc_id                  = "${aws_vpc.adamsackfield-application-deployment.id}"
+  route_table_id          = "${aws_route_table.adamsackfield-rt.id}"
   cidr_block              = "10.8.0.0/24"
-  user_data               = templatefile("./scripts/app_user_data.sh", {})
-  ami_id                  = "ami-097ed995a6ede1d1b"
+  user_data               = templatefile("./scripts/app_user_data.sh", { mongodb_ip=module.db-tier.private_ip })
+  ami_id                  = "ami-0aadcd8576538f786"
   map_public_ip_on_launch = true
 
   ingress = [
