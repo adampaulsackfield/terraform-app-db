@@ -38,24 +38,14 @@ module "db-tier" {
   ami_id                  = "ami-0a6bcbc3dec6aeb5a"
   map_public_ip_on_launch = false
 
-  ingress = [{
-    from_port = 27017
-    to_port = 27017
-    protocol = "tcp"
-    cidr_blocks = "${module.application-tier.subnet_cidr_block}"
-  },
-  {
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = "51.14.230.62/32"
-    },
+  ingress = [
     {
-      from_port   = 22
-      to_port     = 22
-      protocol    = "tcp"
-      cidr_blocks = "54.197.131.165/32"
-    }]
+      from_port = 27017
+      to_port = 27017
+      protocol = "tcp"
+      cidr_blocks = "${module.application-tier.subnet_cidr_block}"
+    }
+  ]
 }
 
 module "application-tier" {

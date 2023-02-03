@@ -46,6 +46,7 @@ resource "aws_instance" "db" {
   user_data = "${var.user_data}"
   subnet_id = "${aws_subnet.adamsackfield-db-subnet.id}"
   vpc_security_group_ids = ["${aws_security_group.adamsackfield-sg-db-group.id}"]
+  key_name               =  "adamsackfield-latest-key"
 
   tags = {
     Name = "${var.name}"
